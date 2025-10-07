@@ -1,16 +1,5 @@
 package token
 
-type TokenType string
-
-type Token struct {
-	Type    TokenType
-	Literal string
-}
-
-func New(tokenType TokenType, literal byte) Token {
-	return Token{Type: tokenType, Literal: string(literal)}
-}
-
 const (
 	ILLEGAL = "ILLEGAL"
 	EOF     = "EOF"
@@ -36,3 +25,26 @@ const (
 	FUNCTION = "FUNCTION"
 	LET      = "LET"
 )
+
+type TokenType string
+
+type Token struct {
+	Type    TokenType
+	Literal string
+}
+
+func New(tokenType TokenType, literal byte) Token {
+	return Token{Type: tokenType, Literal: string(literal)}
+}
+
+var keywords = map[string]TokenType{
+	"fn":  FUNCTION,
+	"let": LET,
+}
+
+func LookupIdent(ident string) TokenType {
+	if tok, ok := keywords[ident]; ok {
+		return tok
+	}
+	return IDENT
+}
