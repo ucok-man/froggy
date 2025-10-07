@@ -17,6 +17,20 @@ func New(input string) *Lexer {
 	return l
 }
 
+func isLetter(char byte) bool {
+	return 'a' <= char && char <= 'z' || 'A' <= char && char <= 'Z' || char == '_'
+}
+
+func isDigit(char byte) bool {
+	return '0' <= char && char <= '9'
+}
+
+func (l *Lexer) skipWhitespace() {
+	for l.currentChar == ' ' || l.currentChar == '\t' || l.currentChar == '\n' || l.currentChar == '\r' {
+		l.readChar()
+	}
+}
+
 func (l *Lexer) readChar() {
 	if l.readPosition >= len(l.input) {
 		l.currentChar = 0 // -> 0 means EOF in ASCII
@@ -28,22 +42,20 @@ func (l *Lexer) readChar() {
 	l.readPosition++
 }
 
+func (l *Lexer) peekChar() byte {
+	if l.readPosition >= len(l.input) {
+		return 0
+	} else {
+		return l.input[l.readPosition]
+	}
+}
+
 func (l *Lexer) readIdentifier() string {
 	position := l.position
 	for isLetter(l.currentChar) {
 		l.readChar()
 	}
 	return l.input[position:l.position]
-}
-
-func isLetter(char byte) bool {
-	return 'a' <= char && char <= 'z' || 'A' <= char && char <= 'Z' || char == '_'
-}
-
-func (l *Lexer) skipWhitespace() {
-	for l.currentChar == ' ' || l.currentChar == '\t' || l.currentChar == '\n' || l.currentChar == '\r' {
-		l.readChar()
-	}
 }
 
 func (l *Lexer) readNumber() string {
@@ -54,10 +66,6 @@ func (l *Lexer) readNumber() string {
 	return l.input[position:l.position]
 }
 
-func isDigit(char byte) bool {
-	return '0' <= char && char <= '9'
-}
-
 func (l *Lexer) NextToken() token.Token {
 	var tok token.Token
 
@@ -65,13 +73,27 @@ func (l *Lexer) NextToken() token.Token {
 
 	switch l.currentChar {
 	case '=':
-		tok = token.New(token.ASSIGN, l.currentChar)
+		if l.peekChar() == '=' {
+			ch := l.currentChar
+			l.readChar()
+			literal := string(ch) + string(l.currentChar)
+			tok = token.Token{Type: token.EQ, Literal: literal}
+		} else {
+			tok = token.New(token.ASSIGN, l.currentChar)
+		}
+	case '!':
+		if l.peekChar() == '=' {
+			ch := l.currentChar
+			l.readChar()
+			literal := string(ch) + string(l.currentChar)
+			tok = token.Token{Type: token.NOT_EQ, Literal: literal}
+		} else {
+			tok = token.New(token.BANG, l.currentChar)
+		}
 	case '+':
 		tok = token.New(token.PLUS, l.currentChar)
 	case '-':
 		tok = token.New(token.MINUS, l.currentChar)
-	case '!':
-		tok = token.New(token.BANG, l.currentChar)
 	case '/':
 		tok = token.New(token.SLASH, l.currentChar)
 	case '*':
