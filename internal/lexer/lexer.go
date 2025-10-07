@@ -74,18 +74,18 @@ func (l *Lexer) NextToken() token.Token {
 	switch l.currentChar {
 	case '=':
 		if l.peekChar() == '=' {
-			ch := l.currentChar
+			char := l.currentChar
 			l.readChar()
-			literal := string(ch) + string(l.currentChar)
+			literal := string(char) + string(l.currentChar)
 			tok = token.Token{Type: token.EQ, Literal: literal}
 		} else {
 			tok = token.New(token.ASSIGN, l.currentChar)
 		}
 	case '!':
 		if l.peekChar() == '=' {
-			ch := l.currentChar
+			char := l.currentChar
 			l.readChar()
-			literal := string(ch) + string(l.currentChar)
+			literal := string(char) + string(l.currentChar)
 			tok = token.Token{Type: token.NOT_EQ, Literal: literal}
 		} else {
 			tok = token.New(token.BANG, l.currentChar)
