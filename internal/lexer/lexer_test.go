@@ -1,8 +1,9 @@
-package lexer
+package lexer_test
 
 import (
 	"testing"
 
+	"github.com/ucok-man/froggy/internal/lexer"
 	"github.com/ucok-man/froggy/internal/token"
 )
 
@@ -109,7 +110,7 @@ if (5 < 10) {
 		{token.EOF, ""},
 	}
 
-	l := New(input)
+	l := lexer.New(input)
 
 	for i, tc := range tests {
 		tok := l.NextToken()
