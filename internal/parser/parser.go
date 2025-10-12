@@ -26,6 +26,10 @@ func New(l *lexer.Lexer) *Parser {
 	return p
 }
 
+func (p *Parser) Errors() []string {
+	return p.errors
+}
+
 func (p *Parser) ParseProgram() *ast.Program {
 	program := &ast.Program{
 		Statements: make([]ast.Statement, 0),
@@ -41,8 +45,58 @@ func (p *Parser) ParseProgram() *ast.Program {
 	return program
 }
 
-func (p *Parser) Errors() []string {
-	return p.errors
+func (p *Parser) parseStatement() ast.Statement {
+	switch p.currentToken.Type {
+	case token.LET:
+		return p.parseLetStatement()
+	case token.RETURN:
+		return p.parseReturnStatement()
+	default:
+		return nil
+	}
+}
+
+func (p *Parser) parseLetStatement() *ast.LetStatement {
+	stmt := &ast.LetStatement{
+		Token: p.currentToken,
+	}
+
+	if !p.expectPeek(token.IDENT) {
+		return nil
+	}
+
+	stmt.Name = &ast.Identifier{
+		Token: p.currentToken,
+		Value: p.currentToken.Literal,
+	}
+
+	if !p.expectPeek(token.ASSIGN) {
+		return nil
+	}
+
+	// TODO: We're skipping the expressions until we
+	// encounter a semicolon
+
+	for !p.currentTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
+
+	return stmt
+}
+
+func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
+	stmt := &ast.ReturnStatement{Token: p.currentToken}
+
+	p.nextToken()
+
+	// TODO: We're skipping the expressions until we
+	// encounter a semicolon
+
+	for !p.currentTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
+
+	return stmt
 }
 
 func (p *Parser) nextToken() {
@@ -74,40 +128,4 @@ func (p *Parser) peekError(t token.TokenType) {
 		t, p.peekToken.Type,
 	)
 	p.errors = append(p.errors, msg)
-}
-
-func (p *Parser) parseStatement() ast.Statement {
-	switch p.currentToken.Type {
-	case token.LET:
-		return p.parseLetStatement()
-	default:
-		return nil
-	}
-}
-
-func (p *Parser) parseLetStatement() *ast.LetStatement {
-	stmt := &ast.LetStatement{
-		Token: p.currentToken,
-	}
-
-	if !p.expectPeek(token.IDENT) {
-		return nil
-	}
-
-	stmt.Name = &ast.Identifier{
-		Token: p.currentToken,
-		Value: p.currentToken.Literal,
-	}
-
-	if !p.expectPeek(token.ASSIGN) {
-		return nil
-	}
-
-	// TODO: We're skipping the expressions until we
-	// encounter a semicolon
-	for !p.currentTokenIs(token.SEMICOLON) {
-		p.nextToken()
-	}
-
-	return stmt
 }
