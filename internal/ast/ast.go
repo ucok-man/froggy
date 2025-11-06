@@ -16,10 +16,8 @@ import (
 // Node is the base interface that all AST nodes must implement.
 // It provides methods for getting the token literal and string representation.
 type Node interface {
-	// TokenLiteral returns the literal value of the token associated with this node.
-	TokenLiteral() string
-	// String returns a string representation of the node for debugging and testing.
-	String() string
+	TokenLiteral() string // Returns the literal value of the token
+	String() string       // Returns a string representation for debugging
 }
 
 // Statement represents any statement node in the AST.
@@ -46,25 +44,13 @@ type Program struct {
 	Statements []Statement
 }
 
-// TokenLiteral returns the token literal of the first statement in the program.
-// Returns an empty string if the program has no statements.
-func (p *Program) TokenLiteral() string {
-	if len(p.Statements) > 0 {
-		return p.Statements[0].TokenLiteral()
-	} else {
-		return ""
-	}
-}
+func (p *Program) TokenLiteral() string { return "" }
 
-// String returns a string representation of the entire program
-// by concatenating all statement strings.
 func (p *Program) String() string {
 	var out bytes.Buffer
-
 	for _, s := range p.Statements {
 		out.WriteString(s.String())
 	}
-
 	return out.String()
 }
 
@@ -75,21 +61,19 @@ func (p *Program) String() string {
 // LetStatement represents a variable binding statement.
 // Syntax: let <identifier> = <expression>;
 type LetStatement struct {
-	Token token.Token // the token.LET token
-	Name  *Identifier // the identifier being bound
-	Value Expression  // the expression producing the value
+	Token      token.Token // the token.LET token
+	Identifier *Identifier // the identifier being bound
+	Value      Expression  // the expression producing the value
 }
 
 func (ls *LetStatement) statementNode()       {}
 func (ls *LetStatement) TokenLiteral() string { return ls.Token.Literal }
 
-// String returns the string representation of the let statement.
-// Format: "let <name> = <value>;"
 func (ls *LetStatement) String() string {
 	var out bytes.Buffer
 
 	out.WriteString(ls.TokenLiteral() + " ")
-	out.WriteString(ls.Name.String())
+	out.WriteString(ls.Identifier.String())
 	out.WriteString(" = ")
 
 	if ls.Value != nil {
@@ -97,9 +81,10 @@ func (ls *LetStatement) String() string {
 	}
 
 	out.WriteString(";")
-
 	return out.String()
 }
+
+// ----------------------------------------------------------------------------
 
 // ReturnStatement represents a return statement.
 // Syntax: return <expression>;
@@ -111,8 +96,6 @@ type ReturnStatement struct {
 func (rs *ReturnStatement) statementNode()       {}
 func (rs *ReturnStatement) TokenLiteral() string { return rs.Token.Literal }
 
-// String returns the string representation of the return statement.
-// Format: "return <value>;"
 func (rs *ReturnStatement) String() string {
 	var out bytes.Buffer
 
@@ -123,9 +106,10 @@ func (rs *ReturnStatement) String() string {
 	}
 
 	out.WriteString(";")
-
 	return out.String()
 }
+
+// ----------------------------------------------------------------------------
 
 // ExpressionStatement wraps an expression to allow it to be used as a statement.
 // This is used for expressions that are evaluated for their side effects.
@@ -137,13 +121,14 @@ type ExpressionStatement struct {
 func (es *ExpressionStatement) statementNode()       {}
 func (es *ExpressionStatement) TokenLiteral() string { return es.Token.Literal }
 
-// String returns the string representation of the expression.
 func (es *ExpressionStatement) String() string {
 	if es.Expression != nil {
 		return es.Expression.String()
 	}
 	return ""
 }
+
+// ----------------------------------------------------------------------------
 
 // BlockStatement represents a block of statements enclosed in braces.
 // Syntax: { <statement>* }
@@ -155,14 +140,11 @@ type BlockStatement struct {
 func (bs *BlockStatement) statementNode()       {}
 func (bs *BlockStatement) TokenLiteral() string { return bs.Token.Literal }
 
-// String returns the string representation of all statements in the block.
 func (bs *BlockStatement) String() string {
 	var out bytes.Buffer
-
 	for _, s := range bs.Statements {
 		out.WriteString(s.String())
 	}
-
 	return out.String()
 }
 
@@ -180,6 +162,8 @@ func (i *Identifier) expressionNode()      {}
 func (i *Identifier) TokenLiteral() string { return i.Token.Literal }
 func (i *Identifier) String() string       { return i.Value }
 
+// ----------------------------------------------------------------------------
+
 // Boolean represents a boolean literal (true or false).
 type Boolean struct {
 	Token token.Token // the token (TRUE or FALSE)
@@ -190,6 +174,8 @@ func (b *Boolean) expressionNode()      {}
 func (b *Boolean) TokenLiteral() string { return b.Token.Literal }
 func (b *Boolean) String() string       { return b.Token.Literal }
 
+// ----------------------------------------------------------------------------
+
 // IntegerLiteral represents an integer number literal.
 type IntegerLiteral struct {
 	Token token.Token // the token containing the integer
@@ -199,6 +185,8 @@ type IntegerLiteral struct {
 func (il *IntegerLiteral) expressionNode()      {}
 func (il *IntegerLiteral) TokenLiteral() string { return il.Token.Literal }
 func (il *IntegerLiteral) String() string       { return il.Token.Literal }
+
+// ----------------------------------------------------------------------------
 
 // FunctionLiteral represents a function definition.
 // Syntax: fn(<parameter>, <parameter>, ...) { <block> }
@@ -211,8 +199,6 @@ type FunctionLiteral struct {
 func (fl *FunctionLiteral) expressionNode()      {}
 func (fl *FunctionLiteral) TokenLiteral() string { return fl.Token.Literal }
 
-// String returns the string representation of the function literal.
-// Format: "fn(<params>) <body>"
 func (fl *FunctionLiteral) String() string {
 	var out bytes.Buffer
 
@@ -246,8 +232,6 @@ type PrefixExpression struct {
 func (pe *PrefixExpression) expressionNode()      {}
 func (pe *PrefixExpression) TokenLiteral() string { return pe.Token.Literal }
 
-// String returns the string representation of the prefix expression.
-// Format: "(<operator><right>)"
 func (pe *PrefixExpression) String() string {
 	var out bytes.Buffer
 
@@ -258,6 +242,8 @@ func (pe *PrefixExpression) String() string {
 
 	return out.String()
 }
+
+// ----------------------------------------------------------------------------
 
 // InfixExpression represents an infix (binary) operator expression.
 // Syntax: <expression> <operator> <expression>
@@ -272,8 +258,6 @@ type InfixExpression struct {
 func (ie *InfixExpression) expressionNode()      {}
 func (ie *InfixExpression) TokenLiteral() string { return ie.Token.Literal }
 
-// String returns the string representation of the infix expression.
-// Format: "(<left> <operator> <right>)"
 func (ie *InfixExpression) String() string {
 	var out bytes.Buffer
 
@@ -303,8 +287,6 @@ type IfExpression struct {
 func (ie *IfExpression) expressionNode()      {}
 func (ie *IfExpression) TokenLiteral() string { return ie.Token.Literal }
 
-// String returns the string representation of the if expression.
-// Format: "if<condition> <consequence>" or "if<condition> <consequence>else <alternative>"
 func (ie *IfExpression) String() string {
 	var out bytes.Buffer
 
@@ -337,8 +319,6 @@ type CallExpression struct {
 func (ce *CallExpression) expressionNode()      {}
 func (ce *CallExpression) TokenLiteral() string { return ce.Token.Literal }
 
-// String returns the string representation of the call expression.
-// Format: "<function>(<args>)"
 func (ce *CallExpression) String() string {
 	var out bytes.Buffer
 

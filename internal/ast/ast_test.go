@@ -12,7 +12,7 @@ func TestProgram(t *testing.T) {
 		Statements: []ast.Statement{
 			&ast.LetStatement{
 				Token: token.Token{Type: token.LET, Literal: "let"},
-				Name: &ast.Identifier{
+				Identifier: &ast.Identifier{
 					Token: token.Token{Type: token.IDENT, Literal: "myVar"},
 					Value: "myVar",
 				},
